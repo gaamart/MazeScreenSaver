@@ -35,7 +35,7 @@ int main(){
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
    
-    GLFWwindow* window = glfwCreateWindow(screen_width, screen_height, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(screen_width, screen_height, "MazeRunner", NULL, NULL);
     if (window == NULL){
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
