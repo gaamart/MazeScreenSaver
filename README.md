@@ -2,7 +2,7 @@
 Contains the prototype of a maze runner screensaver project.
 ![image](https://drive.google.com/uc?export=view&id=1Mpf9Fs_GyRINX_B5M0J1-BVBdfm-uG8v)
 
-The main goal is to reproduce the windows 95 3D Maze screensaver.
+The main goal is to reproduce the Windows 95 3D Maze Screensaver.
 Currently the project consists of a 2D maze prototype with all the basic features required to reproduce the 3D Maze screensaver like:
 - Dynamic Maze generation algorithm
 - Maze navigation algorithm
