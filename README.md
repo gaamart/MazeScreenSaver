@@ -8,6 +8,7 @@ Currently the project consists of a 2D maze prototype with all the basic feature
 - Maze navigation algorithm
 - Runner incrementaly moves and rotates during navigation
 - Maze's exit condition, represented by the tile blue
+- Restart loopat exit position
 
 ## Next Steps
 - Replace the solid color by textures 
