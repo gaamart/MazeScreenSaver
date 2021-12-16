@@ -20,6 +20,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+constexpr int screen_width = 800;
+constexpr int screen_height = 600;
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window); 
 
@@ -32,7 +35,7 @@ int main(){
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
    
-    GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(screen_width, screen_height, "LearnOpenGL", NULL, NULL);
     if (window == NULL){
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -66,11 +69,11 @@ int main(){
         glClear(GL_COLOR_BUFFER_BIT);
         
         glm::mat4 view = glm::mat4(1.0f);
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.3f));
+        view = glm::translate(view, glm::vec3(-1.25f, 1.25f, -6.5f));
         ourShader.setMat4("view", view);
 
         glm::mat4 projection;
-        projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.01f, 100.0f);
+        projection = glm::perspective(glm::radians(45.0f), (float)screen_width / (float)screen_height, 0.01f, 100.0f);
         ourShader.setMat4("projection", projection);
         
         if (!runner->FoundTheMazeEnd())

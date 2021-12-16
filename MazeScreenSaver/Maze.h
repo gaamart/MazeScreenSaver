@@ -8,7 +8,7 @@
 #include "Rectangle.h"
 #include <map>
 
-constexpr int mazeSize = 5;
+constexpr int mazeSize = 10;
 constexpr int initialLine = 0;
 constexpr int initialColumn = 0;
 
