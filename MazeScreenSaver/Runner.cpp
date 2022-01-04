@@ -1,121 +1,121 @@
 #include "Runner.h"
 #include <array>
 
-Runner::Runner(Square square):
-    square{ square },
-    matrixPositionX{ 0 },
-    matrixPositionY{ 0 },
-    currentPositionX{ 0.0f }, 
-    currentPositionY{ 0.0f }, 
-    currentAngle{ 0.0f }, 
-    targetAngle{ 0.0f }, 
-    state{ RunnerState::NeedToDefineWhereToGo }{
+Runner::Runner(Maze& maze):
+    sprites{ sprites },
+    currentDirection{ DirectionLabel::South },
+    state{ RunnerState::NeedToDefineWhereToGo } {
+    
+    auto availableDirections = maze.getCellAvailableDirections(currentMatrixLine, currentMatrixColumn);
+    auto initialDirection = availableDirections.front();
+
+    currentVector = initialDirection.normalizedVector;
+    switch (initialDirection.heading)
+    {
+        case DirectionLabel::South: {
+            currentCameraAngle = glm::half_pi<float>();
+            targetCameraAngle = currentCameraAngle;
+            break;
+        }
+        case DirectionLabel::East: {
+            currentCameraAngle = 0.0f;
+            targetCameraAngle = currentCameraAngle;
+            break;
+        }
+        default:
+            break;
+    }
+
+    auto initialCameraPosition{ glm::vec3((currentPositionX * 0.5f) - 1.0f, 0.0f, ((currentPositionZ * 0.5f) - 1.0f)) };
+    camera = Camera{ initialCameraPosition, currentCameraAngle };
 }
 
-void Runner::draw(){
-    square.setColor(glm::vec3(0.85f, 0.24f, 0.92f));
-    square.bind();
-
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3((currentPositionX * 0.5f) - 1.0f, ((-currentPositionY * 0.5f) + 1.0f), 0.0f)); //move to the correct place in the grid 
-    model = glm::rotate(model, currentAngle, glm::vec3(0.0f, 0.0f, 1.0f));
-    model = glm::scale(model, glm::vec3(0.25f, 0.25f, 0.25f));
-    square.setTransformation(model);
-    square.draw();
-}
-
-void Runner::movementLogic(Maze& maze, float deltaTime){
+void Runner::move(Maze& maze, float deltaTime){
     switch (state){
         case RunnerState::NeedToDefineWhereToGo:{
-            bool isStuck = true;
-            auto directionsMap = DirectionHelper::getDirectionsMap();
-            
-            for (auto const &direction : DirectionHelper::getAllDirections(true)) {
-                int nx = matrixPositionX + direction.lineMovement;
-                int ny = matrixPositionY + direction.columnMovement;
+            Compass compass{};
+            auto isStuck = true;
 
-                if (maze.checkCellAvailableDirection(matrixPositionX, matrixPositionY, direction.facing) && !maze.checkCellWasVisited(nx, ny)){
-                    nextVector = directionsMap.at(direction.facing).vector;
-                    if (matrixPositionX == initialLine && matrixPositionY == initialColumn) {
-                        currentVector = nextVector;
-                    }
+            for (auto const &direction : maze.getCellAvailableDirections(currentMatrixLine, currentMatrixColumn)) {
+                auto nextLine = currentMatrixLine + direction.lineMovement;
+                auto nextColumn = currentMatrixColumn + direction.columnMovement;
 
-                    currentDirection = direction.facing;
-                    backTracking.push(direction.opposite);
-                    maze.setCellAsVisited(nx, ny);
-                    matrixPositionX = nx;
-                    matrixPositionY = ny;
+                if (not maze.checkCellWasVisited(nextLine, nextColumn)){
+                    nextVector = direction.normalizedVector;
+                    currentDirection = direction;
+                    backTracking.push(compass.getOppositeDirection(direction));
+                    maze.setCellAsVisited(nextLine, nextColumn);
+                    currentMatrixLine = nextLine;
+                    currentMatrixColumn = nextColumn;
                     isStuck = false;
                     break;
                 }
             }
 
             if (isStuck){
-                DirectionLabel lastPosition = backTracking.top();
-                backTracking.pop();
-
-                for (auto const &direction : DirectionHelper::getAllDirections(true)){
-                    if (direction.facing == lastPosition){
-                        nextVector = directionsMap.at(direction.facing).vector;
-                        currentDirection = direction.facing;
-                        matrixPositionX += direction.lineMovement;
-                        matrixPositionY += direction.columnMovement;
-                    }
-                }
+                auto lastDirection = backTracking.top();
+                backTracking.pop();                
+                nextVector = lastDirection.normalizedVector;
+                currentDirection = lastDirection;
+                currentMatrixLine += lastDirection.lineMovement;
+                currentMatrixColumn += lastDirection.columnMovement;
             }
             state = RunnerState::NeedToDefineRotationAngle;
             break;
         }
         case RunnerState::NeedToDefineRotationAngle:{
-            float dotResult = glm::dot(currentVector, nextVector);
-            float angle = glm::acos(dotResult);
+            auto dotResult = glm::dot(currentVector, nextVector);
+            auto angle = glm::acos(dotResult);
 
             if (angle == glm::zero<float>()){
                 state = RunnerState::MoveToNextLocation;
             } else if (angle == glm::pi<float>()){
-                targetAngle += angle;
+                targetCameraAngle += angle;
                 state = RunnerState::RotateItSelfClockWise;
             }
             else if (angle == glm::half_pi<float>()){
                 glm::vec3 crossResult = glm::cross(currentVector, nextVector);
-                if (crossResult.z == 1){
-                    targetAngle += angle;
-                    state = RunnerState::RotateItSelfClockWise;
-                } else {
-                    targetAngle -= angle;
+                if (crossResult.y == 1){
+                    targetCameraAngle -= angle;
                     state = RunnerState::RotateItSelfCounterClockWise;
+                } else {
+                    targetCameraAngle += angle;
+                    state = RunnerState::RotateItSelfClockWise;
                 }
             }
             break;
         }
         case RunnerState::RotateItSelfClockWise:{
-            if (currentAngle < targetAngle){
-                currentAngle += angularSpeed * deltaTime;
+            if (currentCameraAngle < targetCameraAngle){
+                currentCameraAngle += runnerAngularSpeed * deltaTime;
+                camera.updateCameraVectors(currentCameraAngle);
             } else {
-                currentAngle = targetAngle;
+                currentCameraAngle = targetCameraAngle;
                 currentVector = nextVector;
                 state = RunnerState::MoveToNextLocation;
             }
             break;
         }
         case RunnerState::RotateItSelfCounterClockWise:{
-            if (currentAngle > targetAngle){
-                currentAngle -= angularSpeed * deltaTime;
+            if (currentCameraAngle > targetCameraAngle){
+                currentCameraAngle -= runnerAngularSpeed * deltaTime;
+                camera.updateCameraVectors(currentCameraAngle);
             } else {
-                currentAngle = targetAngle;
+                currentCameraAngle = targetCameraAngle;
                 currentVector = nextVector;
                 state = RunnerState::MoveToNextLocation;
             }
             break;
         }
         case RunnerState::MoveToNextLocation:{
-            switch (currentDirection){
+            switch (currentDirection.heading){
                 case DirectionLabel::North:{
-                    if (currentPositionY > matrixPositionY){
-                        currentPositionY -= speed * deltaTime;
+                    if (currentPositionZ > currentMatrixColumn){
+                        currentPositionZ -= runnerSpeed * deltaTime;
+                        camera.setNewPosition(glm::vec3((currentPositionX * 0.5f) - 1.0f, 0.0f, ((currentPositionZ * 0.5f) - 1.0f)));
                     } else {
-                        currentPositionY = matrixPositionY;
-                        if (maze.itsTheMazeEnd(currentPositionX, currentPositionY)) {
+                        currentPositionZ = static_cast<float>(currentMatrixColumn);
+                        if (maze.itsTheEnd(currentMatrixLine, currentMatrixColumn)) {
                             state = RunnerState::FoundTheMazeEnd;
                         } else {
                             state = RunnerState::NeedToDefineWhereToGo;
@@ -124,11 +124,12 @@ void Runner::movementLogic(Maze& maze, float deltaTime){
                     break;
                 }
                 case DirectionLabel::South:{
-                    if (currentPositionY < matrixPositionY){
-                        currentPositionY += speed * deltaTime;
+                    if (currentPositionZ < currentMatrixColumn){
+                        currentPositionZ += runnerSpeed * deltaTime;
+                        camera.setNewPosition(glm::vec3((currentPositionX * 0.5f) - 1.0f, 0.0f, ((currentPositionZ * 0.5f) - 1.0f)));
                     } else {
-                        currentPositionY = matrixPositionY;
-                        if (maze.itsTheMazeEnd(currentPositionX, currentPositionY)) {
+                        currentPositionZ = static_cast<float>(currentMatrixColumn);
+                        if (maze.itsTheEnd(currentMatrixLine, currentMatrixColumn)) {
                             state = RunnerState::FoundTheMazeEnd;
                         } else {
                             state = RunnerState::NeedToDefineWhereToGo;
@@ -137,11 +138,12 @@ void Runner::movementLogic(Maze& maze, float deltaTime){
                     break;
                 }      
                 case DirectionLabel::East:{
-                    if (currentPositionX < matrixPositionX){
-                        currentPositionX += speed * deltaTime;
+                    if (currentPositionX < currentMatrixLine){
+                        currentPositionX += runnerSpeed * deltaTime;
+                        camera.setNewPosition(glm::vec3((currentPositionX * 0.5f) - 1.0f, 0.0f, ((currentPositionZ * 0.5f) - 1.0f)));
                     } else {
-                        currentPositionX = matrixPositionX;
-                        if (maze.itsTheMazeEnd(currentPositionX, currentPositionY)) {
+                        currentPositionX = static_cast<float>(currentMatrixLine);
+                        if (maze.itsTheEnd(currentMatrixLine, currentMatrixColumn)) {
                             state = RunnerState::FoundTheMazeEnd;
                         } else {
                             state = RunnerState::NeedToDefineWhereToGo;
@@ -150,11 +152,12 @@ void Runner::movementLogic(Maze& maze, float deltaTime){
                     break;
                 }
                 case DirectionLabel::West:{
-                    if (currentPositionX > matrixPositionX){
-                        currentPositionX -= speed * deltaTime;
+                    if (currentPositionX > currentMatrixLine){
+                        currentPositionX -= runnerSpeed * deltaTime;
+                        camera.setNewPosition(glm::vec3((currentPositionX * 0.5f) - 1.0f, 0.0f, ((currentPositionZ * 0.5f) - 1.0f)));
                     } else {
-                        currentPositionX = matrixPositionX;
-                        if (maze.itsTheMazeEnd(currentPositionX, currentPositionY)) {
+                        currentPositionX = static_cast<float>(currentMatrixLine);
+                        if (maze.itsTheEnd(currentMatrixLine, currentMatrixColumn)) {
                             state = RunnerState::FoundTheMazeEnd;
                         } else {
                             state = RunnerState::NeedToDefineWhereToGo;
@@ -172,6 +175,10 @@ void Runner::movementLogic(Maze& maze, float deltaTime){
     }
 }
 
-bool Runner::FoundTheMazeEnd() {
+glm::mat4 Runner::getView() {
+    return camera.getViewMatrix();
+}
+
+bool Runner::foundTheMazeEnd() {
     return (state == RunnerState::FoundTheMazeEnd);
 }

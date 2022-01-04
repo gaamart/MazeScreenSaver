@@ -2,30 +2,34 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <set>
-#include "DirectionHelper.h"
-#include "Rectangle.h"
+#include <vector>
+#include <map>
+#include "Compass.h"
+#include "Sprite.h"
+#include "Asset.h"
+
+constexpr float cellRadius = 0.249f;
+const float cellDiameter = cellRadius * 2;
 
 class MazeCell
 {
 private:
-	unsigned int vertexArrayObject;
-	unsigned int vertexBufferObject;
-	unsigned int elementBufferObject;
-	Rectangle rectangle;
-
 	bool visited;
-	std::set<DirectionLabel> directions;
-	std::set<DirectionLabel> borderLocations;
+	Asset floorAsset;
+	Asset ceilingAsset;
+	std::map<DirectionLabel, Asset> wallAssets;
+	std::vector<Direction> directions;
 
 public:
-	MazeCell(Rectangle rectangle);
+	MazeCell(int line, int column, std::map<SpriteLabel, Sprite> sprites);
 	void wasVisited();
 	bool checkIfVisited();
 	bool checkIfEmpty();
-	void addDirection(DirectionLabel direction);
-	bool checkDirection(DirectionLabel direction);
-	std::set<DirectionLabel> getAvailableDirections();
-	void draw(int line, int column);
+	void addDirection(Direction direction);
+	std::vector<Direction> getAvailableDirections();
+	void setExit(Sprite ExitSprite);
+	void moveWallsTo(glm::vec3 position);
+	void draw();
+	
 };
 

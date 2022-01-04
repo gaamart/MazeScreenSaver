@@ -147,35 +147,40 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DirectionHelper.cpp" />
+    <ClCompile Include="Asset.cpp" />
+    <ClCompile Include="Sprite.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Compass.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="Maze.cpp" />
     <ClCompile Include="MazeCell.cpp" />
-    <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="Runner.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Prop.cpp" />
     <ClCompile Include="Square.cpp" />
+    <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader.fs" />
     <None Include="shader.vs" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DirectionHelper.h" />
+    <ClInclude Include="Asset.h" />
+    <ClInclude Include="Direction.h" />
+    <ClInclude Include="Sprite.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Compass.h" />
     <ClInclude Include="Maze.h" />
     <ClInclude Include="MazeCell.h" />
-    <ClInclude Include="Rectangle.h" />
     <ClInclude Include="Runner.h" />
     <ClInclude Include="Shader.h" />
-    <ClInclude Include="Prop.h" />
     <ClInclude Include="Square.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="Texture.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="awesomeface.png" />
-    <Image Include="container.jpg" />
+    <Image Include="textures\awesomeface.png" />
+    <Image Include="textures\container.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

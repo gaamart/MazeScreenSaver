@@ -6,13 +6,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <stack>
-#include "DirectionHelper.h"
+#include "Compass.h"
 #include "Maze.h"
 #include "Square.h"
+#include "Camera.h"
 
-enum class RunnerState { NeedToDefineWhereToGo, NeedToDefineRotationAngle, RotateItSelfClockWise, RotateItSelfCounterClockWise, MoveToNextLocation, FoundTheMazeEnd };
-constexpr float speed = 0.5f;
-constexpr float angularSpeed = 0.5f;
+enum class RunnerState { NeedToDefineWhereToGo, NeedToDefineRotationAngle, RotateItSelfClockWise, RotateItSelfCounterClockWise, MoveToNextLocation, FoundTheMazeEnd, Waiting };
+constexpr float runnerSpeed = 1.5f;
+constexpr float runnerAngularSpeed = 1.5f;
 
 class Runner
 {
@@ -21,23 +22,25 @@ private:
 	glm::vec3 nextVector;
 	glm::vec3 currentVector;
 
-	DirectionLabel currentDirection;
+	Direction currentDirection;
+	Camera camera;
 
-	int matrixPositionX;
-	int matrixPositionY;
+	int currentMatrixLine;
+	int currentMatrixColumn;
 
 	float currentPositionX;
-	float currentPositionY;
-	float currentAngle;
-	float targetAngle;
+	float currentPositionZ;
+	float currentCameraAngle;
+	float targetCameraAngle;
 
 	RunnerState state;
-	std::stack<DirectionLabel> backTracking;
+	std::stack<Direction> backTracking;
+	std::map<SpriteLabel, Sprite> sprites;
 
 public:
-	Runner(Square square);
-	void draw();
-	void movementLogic(Maze& maze, float deltaTime);
-	bool FoundTheMazeEnd();
+	Runner(Maze& maze);
+	void move(Maze& maze, float deltaTime);
+	glm::mat4 getView();
+	bool foundTheMazeEnd();
 };
 

@@ -1,34 +1,40 @@
 #pragma once
 
-#include <glad/glad.h>
-#include <algorithm>
+#include <vector>
 #include "MazeCell.h"
-#include "DirectionHelper.h"
-#include "Square.h"
-#include "Rectangle.h"
-#include <map>
+#include "Compass.h"
+#include "Sprite.h"
+
+enum class WallsState { Rising, Dropping, Done };
 
 constexpr int mazeSize = 10;
 constexpr int initialLine = 0;
 constexpr int initialColumn = 0;
+constexpr float wallSpeed = 0.5f;
 
 class Maze
 {
 private:
-	Square square;
+	WallsState wallsState;
+	int biggestPassageLenght;
+	int exitLine;
+	int exitColumn;
+	float wallLevel;
+	std::map<SpriteLabel, Sprite> sprites;
+
 	std::unique_ptr<MazeCell> maze[mazeSize][mazeSize];
-	void createMazeGrid(int initialLine, int initialColumn, Rectangle rectangle);
-	int biggestPathLenght;
-	int finalPositionX;
-	int finalPositionY;
+	void createMazeGrid(int initialLine, int initialColumn, std::map<SpriteLabel, Sprite> sprites);
+	void carve_passage(int line, int column, int passageLenght);
+	void setCellAsExit(Sprite exitSprite);
+	std::map<DirectionLabel, Direction> getDirectionsMapShuffled();
 
 public:
-	Maze(Square square, Rectangle rectangle);
-	void carve_passage(int cx, int cy, int currentPathLenght);
-	void setCellAsVisited(int cellLine, int cellColumn);
-	bool checkCellWasVisited(int cellLine, int cellColumn);
-	bool checkCellAvailableDirection(int cellLine, int cellColumn, DirectionLabel direction);
-	bool itsTheMazeEnd(int line, int column);
-	void draw();
+	Maze(std::map<SpriteLabel, Sprite> sprites);
+	void setCellAsVisited(int line, int column);
+	bool checkCellWasVisited(int line, int column);
+	std::vector<Direction> getCellAvailableDirections(int line, int column);
+	bool itsTheEnd(int line, int column);
+	bool itsWallsAreMoving();
+	void draw(float deltaTime);
 };
 
