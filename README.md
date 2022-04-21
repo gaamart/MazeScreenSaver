@@ -1,6 +1,7 @@
 # MazeScreenSaver
 Contains the prototype of a maze runner screensaver project.
 ![image](https://drive.google.com/uc?export=view&id=1et19Y0vu-rlqaJnF5Af_iw4NQ2pNH3Y9)
+
 Demo video here-> https://youtu.be/e2l2vSTesGw
 
 The main goal is to reproduce the Windows 95 3D Maze Screensaver.
